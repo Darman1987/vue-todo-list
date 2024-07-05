@@ -5,8 +5,12 @@
   "productName": "Todo App",
   "author": "Diego Mesa",
   "private": true,
+  "homepage": "https://Darman1987.github.io/vue-todo-list",
   "scripts": {
-    "test": "echo \"No test specified\" && exit 0"
+    "test": "echo \"No test specified\" && exit 0",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "build": "quasar build"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
@@ -14,7 +18,8 @@
     "quasar": "^1.0.0"
   },
   "devDependencies": {
-    "@quasar/app": "^2.0.0"
+    "@quasar/app": "^2.0.0",
+    "gh-pages": "^6.1.1"
   },
   "browserslist": [
     "last 10 Chrome versions",
