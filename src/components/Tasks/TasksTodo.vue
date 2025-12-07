@@ -8,7 +8,7 @@
       <list-header
         v-if="!settings.showTasksInOneList"
         bgColor="bg-orange-4"
-      >Todo</list-header>
+      >Task List</list-header>
 
       <q-list
         separator

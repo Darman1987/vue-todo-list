@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title class="absolute-center">
-          Todo List
+          To-Do List
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
@@ -70,7 +70,7 @@ export default {
       leftDrawerOpen: false,
       navs: [
         {
-          label: 'Todo',
+          label: 'Task List',
           icon: 'list',
           to: '/'
         },
