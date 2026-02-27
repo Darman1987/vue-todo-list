@@ -7,7 +7,7 @@
     <div>
       <list-header
         v-if="!settings.showTasksInOneList"
-        bgColor="bg-orange-4"
+        bgColor="bg-primary"
       >Task List</list-header>
 
       <q-list

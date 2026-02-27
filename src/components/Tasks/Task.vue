@@ -1,7 +1,7 @@
 <template>
 	<q-item
 		@click="updateTask({ id: id, updates: { completed: !task.completed } })"
-		:class="!task.completed ? 'bg-orange-1' : 'bg-green-1'"
+		:class="!task.completed ? 'bg-primary-1' : 'bg-secondary-1'"
 		v-touch-hold:1000.mouse="showEditTaskModal"
 		clickable
 		v-ripple
@@ -9,6 +9,7 @@
 		<q-item-section side top>
 		<q-checkbox
 		  :value="task.completed"
+		  :color="task.completed ? 'secondary' : 'primary'"
 		  class="no-pointer-events"
 		/>
 		</q-item-section>
@@ -126,7 +127,7 @@ export default {
 			if (search) {
 				let searchRegExp = new RegExp(search, 'ig')
 				return value.replace(searchRegExp, (match) => {
-					return '<span class="bg-yellow-6">' + match + '</span>'
+					return '<span class="search-highlight">' + match + '</span>'
 				})
 			}
 			return value

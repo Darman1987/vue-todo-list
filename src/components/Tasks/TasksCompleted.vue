@@ -9,7 +9,7 @@
     >
       <list-header
         v-if="!settings.showTasksInOneList"
-        bgColor="bg-green-4"
+        bgColor="bg-secondary"
       >Completed</list-header>
     
       <q-list
