@@ -2,10 +2,29 @@ import Vue from 'vue'
 import { uid, LocalStorage } from 'quasar'
 
 const TASK_NOTIFICATION_HISTORY_KEY = 'taskNotificationHistory'
+const PRODUCTION_NOTIFICATION_HOST = 'darman1987.github.io'
+const PRODUCTION_NOTIFICATION_PATH_PREFIX = '/vue-todo-list'
+const DEVELOPMENT_NOTIFICATION_HOSTS = ['localhost', '127.0.0.1']
 const notificationTimers = {}
 
+function isAllowedNotificationOrigin() {
+	if (typeof window === 'undefined') return false
+
+	let { hostname, pathname } = window.location
+	let isProductionOrigin =
+		hostname === PRODUCTION_NOTIFICATION_HOST &&
+		pathname.startsWith(PRODUCTION_NOTIFICATION_PATH_PREFIX)
+	let isDevelopmentOrigin = DEVELOPMENT_NOTIFICATION_HOSTS.includes(hostname)
+
+	return isProductionOrigin || isDevelopmentOrigin
+}
+
 function isNotificationsSupported() {
-	return typeof window !== 'undefined' && 'Notification' in window
+	return (
+		typeof window !== 'undefined' &&
+		'Notification' in window &&
+		isAllowedNotificationOrigin()
+	)
 }
 
 function getTaskDueTimestamp(task) {
