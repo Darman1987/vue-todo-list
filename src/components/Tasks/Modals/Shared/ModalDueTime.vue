@@ -17,13 +17,19 @@
           name="close"
         />
         <q-icon name="access_time" class="cursor-pointer">
-          <q-popup-proxy transition-show="scale" transition-hide="scale">
+          <q-popup-proxy
+            ref="qTimeProxy"
+            transition-show="scale"
+            transition-hide="scale"
+            @before-show="onPopupShow"
+          >
             <q-time
-              :value="dueTime"
-              @input="$emit('update:dueTime', $event)"
+              :value="draftDueTime"
+              @input="onTimeInput"
             >
               <div class="row items-center justify-end">
-              <q-btn v-close-popup label="Close" color="primary" flat />
+                <q-btn v-close-popup label="Cancel" color="primary" flat />
+                <q-btn @click="applyDueTime" label="OK" color="primary" flat />
               </div>
             </q-time>
           </q-popup-proxy>
@@ -35,6 +41,23 @@
 
 <script>
 export default {
-  props: ['dueTime']
+  props: ['dueTime'],
+  data () {
+    return {
+      draftDueTime: ''
+    }
+  },
+  methods: {
+    onPopupShow () {
+      this.draftDueTime = this.dueTime
+    },
+    onTimeInput (value) {
+      this.draftDueTime = value
+    },
+    applyDueTime () {
+      this.$emit('update:dueTime', this.draftDueTime)
+      this.$refs.qTimeProxy.hide()
+    }
+  }
 }
 </script>

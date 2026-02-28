@@ -31,16 +31,18 @@
 
 <script>
 import { mapActions } from 'vuex'
+import { date } from 'quasar'
 import mixinAddEditTask from 'src/mixins/mixin-add-edit-task'
 
 export default {
 	mixins: [mixinAddEditTask],
 	data() {
+		const now = Date.now()
 		return {
 			taskToSubmit: {
 				name: '',
-				dueDate: '',
-				dueTime: '',
+				dueDate: date.formatDate(now, 'YYYY/MM/DD'),
+				dueTime: date.formatDate(now, 'HH:mm'),
 				completed: false
 			}
 		}
