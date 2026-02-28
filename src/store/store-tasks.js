@@ -1,6 +1,91 @@
 import Vue from 'vue'
 import { uid, LocalStorage } from 'quasar'
 
+const TASK_NOTIFICATION_HISTORY_KEY = 'taskNotificationHistory'
+const notificationTimers = {}
+
+function isNotificationsSupported() {
+	return typeof window !== 'undefined' && 'Notification' in window
+}
+
+function getTaskDueTimestamp(task) {
+	if (!task || !task.dueDate) return null
+
+	let [year, month, day] = task.dueDate.split('/').map(Number)
+	let [hours, minutes] = (task.dueTime || '00:00').split(':').map(Number)
+
+	if (
+		Number.isNaN(year) ||
+		Number.isNaN(month) ||
+		Number.isNaN(day) ||
+		Number.isNaN(hours) ||
+		Number.isNaN(minutes)
+	) {
+		return null
+	}
+
+	return new Date(year, month - 1, day, hours, minutes, 0, 0).getTime()
+}
+
+function getNotificationEventKey(task) {
+	return `${task.dueDate || ''}|${task.dueTime || ''}`
+}
+
+function getNotificationHistory() {
+	return LocalStorage.getItem(TASK_NOTIFICATION_HISTORY_KEY) || {}
+}
+
+function hasTaskNotificationBeenSent(id, task) {
+	let history = getNotificationHistory()
+	return history[id] === getNotificationEventKey(task)
+}
+
+function markTaskNotificationAsSent(id, task) {
+	let history = getNotificationHistory()
+	history[id] = getNotificationEventKey(task)
+	LocalStorage.set(TASK_NOTIFICATION_HISTORY_KEY, history)
+}
+
+function clearTaskNotificationTimer(id) {
+	if (notificationTimers[id]) {
+		clearTimeout(notificationTimers[id])
+		delete notificationTimers[id]
+	}
+}
+
+function showTaskNotification(task) {
+	new Notification('Task due', {
+		body: task.name || 'A pending task is due now.'
+	})
+}
+
+function scheduleTaskNotification(id, task) {
+	clearTaskNotificationTimer(id)
+
+	if (!isNotificationsSupported()) return
+	if (Notification.permission !== 'granted') return
+	if (!task || task.completed || !task.dueDate) return
+
+	let dueTimestamp = getTaskDueTimestamp(task)
+	if (dueTimestamp === null) return
+
+	if (hasTaskNotificationBeenSent(id, task)) return
+
+	let delay = dueTimestamp - Date.now()
+
+	if (delay <= 0) {
+		showTaskNotification(task)
+		markTaskNotificationAsSent(id, task)
+		return
+	}
+
+	notificationTimers[id] = setTimeout(() => {
+		showTaskNotification(task)
+		markTaskNotificationAsSent(id, task)
+		clearTaskNotificationTimer(id)
+	}, delay)
+}
+
 const state = {
 	tasks: {
 		'ID1': {
@@ -48,15 +133,34 @@ const mutations = {
 }
 
 const actions = {
-	updateTask({ commit, dispatch }, payload) {
+	async ensureNotificationPermission() {
+		if (!isNotificationsSupported()) return
+		if (Notification.permission !== 'default') return
+		try {
+			await Notification.requestPermission()
+		} catch (error) {
+			// Ignore permission prompt errors and continue app flow.
+		}
+	},
+	syncTaskNotifications({ state }) {
+		Object.keys(notificationTimers).forEach((id) => clearTaskNotificationTimer(id))
+		Object.keys(state.tasks).forEach((id) => {
+			scheduleTaskNotification(id, state.tasks[id])
+		})
+	},
+	async updateTask({ commit, dispatch }, payload) {
+		await dispatch('ensureNotificationPermission')
 		commit('updateTask', payload)
 		dispatch('saveTasks')
+		dispatch('syncTaskNotifications')
 	},
 	deleteTask({ commit, dispatch }, id) {
 		commit('deleteTask', id)
 		dispatch('saveTasks')
+		dispatch('syncTaskNotifications')
 	},
-	addTask({ commit, dispatch }, task) {
+	async addTask({ commit, dispatch }, task) {
+		await dispatch('ensureNotificationPermission')
 		let taskId = uid()
 		let payload = {
 			id: taskId,
@@ -64,15 +168,18 @@ const actions = {
 		}
 		commit('addTask', payload)
 		dispatch('saveTasks')
+		dispatch('syncTaskNotifications')
 	},
 	saveTasks({ state }) {
 		LocalStorage.set('tasks', state.tasks)
 	},
-	getTasks({ commit }) {
+	async getTasks({ commit, dispatch }) {
+		await dispatch('ensureNotificationPermission')
 		let tasks = LocalStorage.getItem('tasks')
 		if (tasks) {
 			commit('setTasks', tasks)
 		}
+		dispatch('syncTaskNotifications')
 	},
 	setSearch({ commit }, value) {
 		commit('setSearch', value)
