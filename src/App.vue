@@ -9,9 +9,11 @@ import { mapActions } from 'vuex'
 
 export default {
   methods: {
-    ...mapActions('settings', ['getSettings'])
+    ...mapActions('settings', ['getSettings']),
+    ...mapActions('tasks', ['getTasks'])
   },
   mounted() {
+    this.getTasks()
     this.getSettings()
   }
 }

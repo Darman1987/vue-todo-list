@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { uid } from 'quasar'
+import { uid, LocalStorage } from 'quasar'
 
 const state = {
 	tasks: {
@@ -36,6 +36,9 @@ const mutations = {
 	addTask(state, payload) {
 		Vue.set(state.tasks, payload.id, payload.task)
 	},
+	setTasks(state, tasks) {
+		state.tasks = tasks
+	},
 	setSearch(state, value) {
 		state.search = value
 	},	
@@ -45,19 +48,31 @@ const mutations = {
 }
 
 const actions = {
-	updateTask({ commit }, payload) {
+	updateTask({ commit, dispatch }, payload) {
 		commit('updateTask', payload)
+		dispatch('saveTasks')
 	},
-	deleteTask({ commit }, id) {
+	deleteTask({ commit, dispatch }, id) {
 		commit('deleteTask', id)
+		dispatch('saveTasks')
 	},
-	addTask({ commit }, task) {
+	addTask({ commit, dispatch }, task) {
 		let taskId = uid()
 		let payload = {
 			id: taskId,
 			task: task
 		}
 		commit('addTask', payload)
+		dispatch('saveTasks')
+	},
+	saveTasks({ state }) {
+		LocalStorage.set('tasks', state.tasks)
+	},
+	getTasks({ commit }) {
+		let tasks = LocalStorage.getItem('tasks')
+		if (tasks) {
+			commit('setTasks', tasks)
+		}
 	},
 	setSearch({ commit }, value) {
 		commit('setSearch', value)
